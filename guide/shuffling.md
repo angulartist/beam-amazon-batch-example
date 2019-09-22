@@ -73,7 +73,7 @@ pairedWithOne := beam.ParDo(s, func (tsx Transaction) (string, int) {
 PCollection<KV<string, int>> -> PCollection<GBK<string, iter<int>>>
 grouppedByKey := beam.GroupByKey(s, pairedWithOne)
 
-PCollection<GBK<string, iter<int>>> -> PCollection<KV<string, int>>
+// PCollection<GBK<string, iter<int>>> -> PCollection<KV<string, int>>
 counted := beam.ParDo(s, func(key string, iter []int) (key, int) {
     return key, sum(iter)
 }, grouppedByKey)
@@ -110,10 +110,10 @@ So, in our case, the `GroupByKey` was a naive approach. We have elements of the 
 *Using GroupByKey*
 
 ```golang
-PCollection<KV<string, int>> -> PCollection<GBK<string, iter<int>>>
+// PCollection<KV<string, int>> -> PCollection<GBK<string, iter<int>>>
 grouppedByKey := beam.GroupByKey(s, pairedWithOne)
 
-PCollection<GBK<string, iter<int>>> -> PCollection<KV<string, int>>
+// PCollection<GBK<string, iter<int>>> -> PCollection<KV<string, int>>
 counted := beam.ParDo(s, func(key string, iter []int) (key, int) {
     return key, sum(iter)
 }, grouppedByKey)
@@ -122,7 +122,7 @@ counted := beam.ParDo(s, func(key string, iter []int) (key, int) {
 *Using SumPerKey*
 
 ```golang
-PCollection<KV<string, int>> -> PCollection<KV<string, int>>
+// PCollection<KV<string, int>> -> PCollection<KV<string, int>>
 stats.SumPerKey(s, pairedWithOne)
 ```
 
