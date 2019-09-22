@@ -21,8 +21,8 @@ func DescribePipeline(ctx context.Context, s beam.Scope) {
 	log.Infof(ctx, "Started pipeline on scope: %s", s)
 
 	// [#START BATCH EXAMPLE]
-
 	source := csvio.Read(s, *utils.Input, reflect.TypeOf(models.Review{}))
+
 
 	/* Only (re)shuffle your data when it's needed. This could increase parallelism but will
 	Introduce a huge performance hit because of too much network communication between nodes on the

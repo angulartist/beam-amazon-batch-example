@@ -19,35 +19,24 @@ func ExtractRecommendationRatio(s beam.Scope, col beam.PCollection) beam.PCollec
 
 	pairedWithOne := custom.PairWithOne(s, extractedKey)
 
-	//beam.ParDo0(s, func(w beam.Window, e beam.EventTime, review models.Review) {
-	//	log.Debugf(ctx, "window=%v eventTime=%v for %s", w, e, review.Date)
-	//}, col)
-
 	summed := stats.SumPerKey(s, pairedWithOne)
 
 	droppedKey := beam.DropKey(s, pairedWithOne)
 
 	counted := stats.Sum(s, droppedKey)
 
-	// Demo: How to test your PTransforms?
-	// Asserts that we get the sum value of 5000 (the total number of records in our .csv chunks files)
-	//passert.Sum(s, counted, "total rows", 1, 5000)
-
 	mapped := beam.ParDo(s,
 		func(k string, v int,
-			sideCounted func(*int) bool,
+			sideCounted int,
 			emit func(ratio models.RecommendRatio)) {
-			var total int
 
-			if sideCounted(&total) {
-				p := percent.PercentOf(v, total)
+			p := percent.PercentOf(v, sideCounted)
 
-				emit(models.RecommendRatio{
-					DoRecommend: k,
-					NumVotes:    v,
-					Percent:     p,
-				})
-			}
+			emit(models.RecommendRatio{
+				DoRecommend: k,
+				NumVotes:    v,
+				Percent:     p,
+			})
 
 		}, summed,
 		beam.SideInput{Input: counted})

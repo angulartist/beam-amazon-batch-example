@@ -126,15 +126,15 @@
           "numRatings": 14
         },
         {
+          "username": "Dave",
+          "numRatings": 13
+        },
+        {
           "username": "Rick",
           "numRatings": 13
         },
         {
           "username": "John",
-          "numRatings": 13
-        },
-        {
-          "username": "Dave",
           "numRatings": 13
         }
       ],
