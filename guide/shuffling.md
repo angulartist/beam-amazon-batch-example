@@ -159,6 +159,10 @@ Because `SumPerKey` is an associative reduction : magic happens! In fact, it wil
 
 And then, we have the shuffle phase followed by the reduce phase.
 
+| Worker1  | Worker2  | Worker3  |
+|---|---|---|
+| (Visa, 8)  | (Mastercard, 7)  | (Maestro, 3)  |
+
 #### To sum up
 
 Not all problems that can be solved by `GroupByKey` can be calculated with `SumPerKey` / `CombinePerKey`, in fact they require combining all your values into another value with the **exact same type**.
