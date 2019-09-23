@@ -54,6 +54,6 @@ func main() {
 	Any [error] will be caught and stop the program execution. */
 	if err := beamx.Run(ctx, p); err != nil {
 		fmt.Println(err)
-		log.Exitf(ctx, "Failed to execute job: on ctx=%v:")
+		log.Exitf(ctx, "Failed to execute job: on ctx=%v:", ctx)
 	}
 }
