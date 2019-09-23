@@ -41,8 +41,6 @@ pairedWithOne := beam.ParDo(s, func (tsx Transaction) (string, int) {
 }, transactions)
 ```
 
-> Note: Don't forget that the ParDo (or parallelDo) function is going to be executed across multiple workers in the cluster. It will applies the User Defined Function (UDF) to each element of the input PCollection.
-
 **What might this look like on the cluster?**
 
 Let's say we have a cluster of 3 nodes. Each node has a chunk (or partition) of our data and the user code to apply to each element. We will get a bunch of key-value pairs on each node, just like that :
@@ -58,7 +56,7 @@ Let's say we have a cluster of 3 nodes. Each node has a chunk (or partition) of 
 
 #### The reduce phase
 
-Now, we want to group all values with the same key (the credit card Type) together in order to aggregate the sum of occurrence. So we'll use a combination of a `GroupByKey` with a reducer.
+Now, we want to group all values with the same key (the credit card Type) together in order to aggregate a sum. So we'll use a combination of a `GroupByKey` with a reducer.
 
 ```golang
 // NOTHING -> PCollection<Transaction>
@@ -70,7 +68,7 @@ pairedWithOne := beam.ParDo(s, func (tsx Transaction) (string, int) {
 }, transactions)
 
 // New
-PCollection<KV<string, int>> -> PCollection<GBK<string, iter<int>>>
+// PCollection<KV<string, int>> -> PCollection<GBK<string, iter<int>>>
 grouppedByKey := beam.GroupByKey(s, pairedWithOne)
 
 // PCollection<GBK<string, iter<int>>> -> PCollection<KV<string, int>>
@@ -83,7 +81,7 @@ counted := beam.ParDo(s, func(key string, iter []int) (key, int) {
 
 **What might this look like on the cluster?**
 
-When the reduce phase happens, key-value pairs will move across the network so the same keys will be gathered on the same machine. In this example, we assume that each node is hosting a unique key. Each key has an iterable of integers as a value, which represents the occurrence of the credit card type.
+Right before the reduce phase happens, key-value pairs will move across the network so the same keys will be gathered on the same machine. In this example, we assume that each node is hosting a unique key. Each key has an iterable of integers as a value, which represents the occurrence of the credit card type.
 
 *GroupByKey*
 
@@ -99,7 +97,7 @@ When the reduce phase happens, key-value pairs will move across the network so t
 
 #### Houston, we have a problem
 
-But didn't we talk about shuffling? On the reduce phase, when data is moving across the network, this is called **shuffling**. And when shuffling a small dataset might be okay, on a huge dataset this will introduce latency because too much network communication kills performance. So you **do not want sending all of your data across the network if it's not absolutely required**.
+But didn't we talk about shuffling? Just before the reduce phase, when data is moving across the network, this is called **shuffling**. And when shuffling a small dataset might be *okay*, on a huge dataset this will introduce **latency** because too much network communication kills performance. So you **do not want sending all of your data across the network if it's not absolutely required**.
 
 So, in our case, the `GroupByKey` was a naive approach. We have elements of the same type and we want to calculate a sum, hum, can we do it in a more efficient way? Can we reduce before doing the shuffle to reduce the data that will be sent over the network? Yay!
 
@@ -129,6 +127,8 @@ stats.SumPerKey(s, pairedWithOne)
 **What might this look like on the cluster?**
 
 Because `SumPerKey` is an associative reduction : magic happens! In fact, it will reduces the data on the mapper side first before sending the aggregated results to the down stream. And because results are already pre-aggregated, the data that will be sent over the network for the final reduction will be greatly limited. So we get the same output but **faster**.
+
+![Magic](https://media.makeameme.org/created/magic-its.jpg)
 
 *Mappers will build key-value pairs*
 
