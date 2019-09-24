@@ -23,13 +23,12 @@ func DescribePipeline(ctx context.Context, s beam.Scope) {
 	// [#START BATCH EXAMPLE]
 	source := csvio.Read(s, *utils.Input, reflect.TypeOf(models.Review{}))
 
-
 	/* Only (re)shuffle your data when it's needed. This could increase parallelism but will
 	Introduce a huge performance hit because of too much network communication between nodes on the
 	reduce phase (ie: GroupByKey) */
 	//source = custom.Reshuffle(s, source)
 
-	timestampFormatted := beam.ParDo(s, udfs.ToTimestampFn, source)
+	timestampFormatted, timestampAssignmentError := beam.ParDo2(s, udfs.ToTimestampFn, source)
 
 	withTimestamp := beam.ParDo(s, &udfs.AddTimestampFn{}, timestampFormatted)
 
@@ -92,6 +91,9 @@ func DescribePipeline(ctx context.Context, s beam.Scope) {
 	textio.Write(s.Scope("Write to Text Sink"), *utils.Output, o)
 
 	// TODO: @Mo: Add BiQuery output sink example.
+
+	/* Write error log */
+	ptrans.WriteErrorLog(s, "logs.log", timestampAssignmentError)
 
 	// [#END BATCH EXAMPLE]
 }

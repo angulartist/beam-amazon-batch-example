@@ -1,11 +1,9 @@
 package custom
 
 import (
-	"context"
-	"fmt"
 	"github.com/apache/beam/sdks/go/pkg/beam"
 	"math/rand"
-	"time"
+	"strings"
 )
 
 /*
@@ -43,52 +41,18 @@ func Reshuffle(s beam.Scope, col beam.PCollection) beam.PCollection {
 	}, col)
 }
 
-/* Playground */
+func Join(elem ...string) string {
+	if len(elem) == 0 {
+		return ""
+	}
 
-// TODO: @Mo: Add BatchSizeEstimator struct https://github.com/apache/beam/blob/511caa3d8025e6d51adc0caa2fa253222f325ec3/sdks/python/apache_beam/transforms/util.py#L231
-type BatchSizeEstimator struct {
-	minBatchSize            int
-	maxBatchSize            int
-	targetBatchOverhead     float64
-	targetBatchDurationSecs int
-	variance                float64
-	clock                   time.Time
-}
-
-// TODO: @Mo: Implement GlobalWindowsBatching DoFunction https://github.com/apache/beam/blob/511caa3d8025e6d51adc0caa2fa253222f325ec3/sdks/python/apache_beam/transforms/util.py#L418
-type GlobalWindowsBatchingDoFn struct {
-	batchSizeEstimator BatchSizeEstimator
-	//batch              []interface{}
-	batchSize int
-}
-
-func BatchElements(s beam.Scope, col beam.PCollection) {
-	beam.ParDo0(s, &GlobalWindowsBatchingDoFn{batchSizeEstimator: BatchSizeEstimator{
-		minBatchSize:            0,
-		maxBatchSize:            0,
-		targetBatchOverhead:     0,
-		targetBatchDurationSecs: 0,
-		variance:                0,
-		clock:                   time.Time{},
-	}, batchSize: 2}, col)
-}
-
-func (fn *GlobalWindowsBatchingDoFn) Setup(ctx context.Context, estimator BatchSizeEstimator) {
-	fn.batchSizeEstimator = estimator
-}
-
-//func (fn *GlobalWindowsBatchingDoFn) StartBundle(ctx context.Context, estimator BatchSizeEstimator) {
-//
-//}
-
-func (fn GlobalWindowsBatchingDoFn) ProcessElement(ctx context.Context, col beam.X) {
-	fmt.Printf("Yolo %v %v", fn, col)
-}
-
-func (fn GlobalWindowsBatchingDoFn) FinishBundle(ctx context.Context) {
-
-}
-
-func (fn GlobalWindowsBatchingDoFn) Teardown(ctx context.Context) {
-	fmt.Println("Teardown @GlobalWindowsBatchingDoFn")
+	var sb strings.Builder
+	sb.WriteString(elem[0])
+	for i, e := range elem[1:] {
+		if !strings.HasSuffix(elem[i], "/") {
+			sb.WriteRune('/')
+		}
+		sb.WriteString(e)
+	}
+	return sb.String()
 }
