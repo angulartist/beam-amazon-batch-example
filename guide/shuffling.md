@@ -165,6 +165,8 @@ Because `SumPerKey` is an associative reduction : magic happens! In fact, it wil
 
 And then, we have the shuffle phase followed by the reduce phase.
 
+*Aggregated output*
+
 | Worker1  | Worker2  | Worker3  |
 |---|---|---|
 | (Visa, 8)  | (Mastercard, 7)  | (Maestro, 3)  |
